@@ -3,7 +3,15 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../lib/auth.jsx";
 import { PremiumLock } from "../components/Layout.jsx";
 import CowDiagram from "../components/CowDiagram.jsx";
-import { CUTS, FRESH_SIGNS, STORAGE_TIPS } from "../data/meat.js";
+import {
+  CUTS,
+  FRESH_SIGNS,
+  STORAGE_TIPS,
+  DONENESS,
+  TECHNIQUES,
+  GLOSSARY,
+  BUYING_TIPS,
+} from "../data/meat.js";
 import { recipeUrl } from "../lib/links.js";
 
 export default function Belajar() {
@@ -97,11 +105,30 @@ export default function Belajar() {
                   <span className="font-bold text-ink/60">Kadar lemak</span>
                   <span className="font-bold">{activeCut.fat}</span>
                 </div>
+                {activeCut.price && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-bold text-ink/60">Kelas harga</span>
+                    <PriceDots n={activeCut.price} />
+                  </div>
+                )}
               </div>
 
               <p className="mt-4 text-sm font-bold">
                 🍳 Cara masak: <span className="font-normal">{activeCut.method}</span>
               </p>
+
+              {activeCut.tip && (
+                <div className="mt-3 rounded-xl2 border-2 border-ink bg-mintsoft p-3 text-sm">
+                  <span className="font-bold">💡 Tips: </span>
+                  {activeCut.tip}
+                </div>
+              )}
+              {activeCut.mistake && (
+                <div className="mt-2 rounded-xl2 border-2 border-ink bg-white p-3 text-sm">
+                  <span className="font-bold text-coral">⚠️ Hindari: </span>
+                  {activeCut.mistake}
+                </div>
+              )}
 
               <div className="mt-4">
                 <p className="text-sm font-bold text-ink/60">Masakan populer:</p>
@@ -154,6 +181,72 @@ export default function Belajar() {
         </div>
       </section>
 
+      {/* steak doneness guide */}
+      <section className="mx-auto max-w-5xl px-5 py-12">
+        <h2 className="font-display text-2xl font-extrabold">
+          Tingkat kematangan steak
+        </h2>
+        <p className="mt-1 max-w-2xl text-ink/60">
+          Panduan suhu inti daging dan ciri visualnya. Gunakan termometer daging
+          untuk hasil paling akurat.
+        </p>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {DONENESS.map((d) => (
+            <div
+              key={d.level}
+              className="overflow-hidden rounded-xl2 border-2 border-ink bg-white shadow-card"
+            >
+              <div className="flex h-16 items-center justify-center" style={{ background: d.color }}>
+                <div
+                  className="h-9 w-9 rounded-full border-2 border-white/70"
+                  style={{ background: d.color, filter: "brightness(0.7)" }}
+                />
+              </div>
+              <div className="p-4">
+                <p className="font-display font-extrabold">{d.level}</p>
+                <p className="mt-0.5 text-sm font-bold text-coral">{d.tempC}</p>
+                <p className="mt-1 text-xs text-ink/60">{d.center}</p>
+                <p className="mt-2 text-xs text-ink/70">{d.note}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* cooking techniques */}
+      <section className="bg-lilac/25 px-5 py-12">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="font-display text-2xl font-extrabold">
+            Teknik memasak & kapan dipakai
+          </h2>
+          <p className="mt-1 max-w-2xl text-ink/60">
+            Teknik yang tepat mengubah cut murah jadi hidangan juara. Cocokkan
+            teknik dengan karakter dagingnya.
+          </p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {TECHNIQUES.map((t) => (
+              <div
+                key={t.name}
+                className="rounded-xl2 border-2 border-ink bg-white p-5 shadow-card"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{t.icon}</span>
+                  <p className="font-display text-lg font-extrabold">{t.name}</p>
+                </div>
+                <p className="mt-2 text-xs font-bold uppercase tracking-wide text-coral">
+                  {t.heat}
+                </p>
+                <p className="mt-2 text-sm text-ink/80">{t.why}</p>
+                <p className="mt-2 text-sm">
+                  <span className="font-bold">Terbaik untuk: </span>
+                  <span className="text-ink/70">{t.best}</span>
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* fresh signs */}
       <section className="mx-auto max-w-5xl px-5 py-12">
         <h2 className="font-display text-2xl font-extrabold">
@@ -200,6 +293,54 @@ export default function Belajar() {
         </div>
       </section>
 
+      {/* smart buying */}
+      <section className="mx-auto max-w-5xl px-5 py-12">
+        <h2 className="font-display text-2xl font-extrabold">
+          Belanja daging lebih cerdas
+        </h2>
+        <p className="mt-1 max-w-2xl text-ink/60">
+          Tips memilih di lapak atau supermarket supaya dapat kualitas terbaik
+          sesuai budget.
+        </p>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          {BUYING_TIPS.map((t) => (
+            <div
+              key={t.title}
+              className="flex gap-4 rounded-xl2 border-2 border-ink bg-sun/40 p-5 shadow-card"
+            >
+              <span className="text-3xl">{t.icon}</span>
+              <div>
+                <p className="font-display font-extrabold">{t.title}</p>
+                <p className="mt-1 text-sm text-ink/70">{t.text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* glossary */}
+      <section className="bg-cream px-5 py-12">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="font-display text-2xl font-extrabold">
+            Kamus istilah daging
+          </h2>
+          <p className="mt-1 max-w-2xl text-ink/60">
+            Biar nggak bingung saat baca resep atau ngobrol sama tukang daging.
+          </p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            {GLOSSARY.map((g) => (
+              <div
+                key={g.term}
+                className="rounded-xl2 border-2 border-ink bg-white p-5 shadow-card"
+              >
+                <p className="font-display font-extrabold text-coral">{g.term}</p>
+                <p className="mt-1 text-sm text-ink/70">{g.def}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* cta */}
       <section className="mx-auto max-w-5xl px-5 py-12 text-center">
         <h2 className="font-display text-2xl font-extrabold">Siap praktik?</h2>
@@ -233,6 +374,18 @@ function TendernessDots({ n }) {
             i <= n ? "bg-coral" : "bg-white/60"
           }`}
         />
+      ))}
+    </span>
+  );
+}
+
+function PriceDots({ n }) {
+  return (
+    <span className="font-bold tracking-tight">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <span key={i} className={i <= n ? "text-ink" : "text-ink/25"}>
+          Rp
+        </span>
       ))}
     </span>
   );

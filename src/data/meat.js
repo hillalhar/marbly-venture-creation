@@ -24,6 +24,9 @@ export const CUTS = [
     char: "Serbaguna, sedikit urat, harga ekonomis. Rasa gurih karena ada lemak.",
     method: "Giling, semur, tumis, bakso.",
     dishes: ["Bakso sapi", "Semur daging", "Tumis lada hitam"],
+    price: 2,
+    tip: "Cocok digiling sendiri untuk bakso/patty karena rasio lemaknya pas.",
+    mistake: "Jangan dibuat steak cepat — hasilnya alot karena ada jaringan ikat.",
   },
   {
     id: "ribeye",
@@ -36,6 +39,9 @@ export const CUTS = [
     char: "Marbling tinggi, juicy, dan beraroma kuat. Favorit untuk steak.",
     method: "Steak, panggang singkat.",
     dishes: ["Ribeye steak", "Beef teppanyaki", "Yakiniku"],
+    price: 4,
+    tip: "Masak medium-rare agar lemak marbling meleleh dan dagingnya juicy.",
+    mistake: "Jangan dimasak sampai well done — lemaknya habis dan jadi kering.",
   },
   {
     id: "ribs",
@@ -48,6 +54,9 @@ export const CUTS = [
     char: "Daging menempel di tulang, gurih dan kaya rasa saat dimasak lama.",
     method: "Iga bakar, sup, slow-cook.",
     dishes: ["Iga bakar", "Sop iga", "Konro"],
+    price: 3,
+    tip: "Rebus/ungkep dulu sampai empuk sebelum dibakar agar tidak alot.",
+    mistake: "Langsung dibakar tanpa dilunakkan dulu bikin daging keras di tulang.",
   },
   {
     id: "sirloin",
@@ -60,6 +69,9 @@ export const CUTS = [
     char: "Empuk dengan rasa kuat dan lapisan lemak di tepi. Fleksibel.",
     method: "Steak, panggang, sate.",
     dishes: ["Sirloin steak", "Sate sapi", "Beef bowl"],
+    price: 3,
+    tip: "Biarkan lapisan lemak di tepi saat memanggang untuk rasa ekstra.",
+    mistake: "Memotong searah serat bikin terasa lebih alot — potong melawan serat.",
   },
   {
     id: "tenderloin",
@@ -72,6 +84,9 @@ export const CUTS = [
     char: "Bagian paling empuk, serat halus, lemak sedikit. Premium dan lembut.",
     method: "Steak cepat, grill, tumis.",
     dishes: ["Filet mignon", "Tenderloin steak", "Bistik"],
+    price: 5,
+    tip: "Masak cepat sampai medium-rare; karena lemak sedikit, mudah kering.",
+    mistake: "Overcook sedikit saja langsung terasa kering karena minim lemak.",
   },
   {
     id: "brisket",
@@ -84,6 +99,9 @@ export const CUTS = [
     char: "Berlemak dan berurat. Butuh masak lama agar empuk dan meresap.",
     method: "Rendang, soto, smoked brisket.",
     dishes: ["Rendang", "Soto betawi", "Smoked brisket"],
+    price: 3,
+    tip: "Masak berjam-jam dengan api kecil; kolagennya lumer jadi empuk mewah.",
+    mistake: "Dimasak cepat/digoreng sebentar hasilnya keras dan kenyal.",
   },
   {
     id: "round",
@@ -96,6 +114,9 @@ export const CUTS = [
     char: "Padat, rendah lemak, cenderung kering kalau salah masak.",
     method: "Dendeng, empal, abon, rendang.",
     dishes: ["Dendeng balado", "Empal gepuk", "Abon sapi"],
+    price: 2,
+    tip: "Rebus/ungkep dulu, lalu suwir atau iris tipis untuk tekstur terbaik.",
+    mistake: "Dibuat steak cepat jadi kering dan hambar karena minim lemak.",
   },
   {
     id: "shank",
@@ -108,6 +129,9 @@ export const CUTS = [
     char: "Banyak urat dan kolagen. Keras bila cepat, empuk lumer bila lama.",
     method: "Semur, sup, rawon, bakso urat.",
     dishes: ["Rawon", "Sop daging", "Bakso urat"],
+    price: 2,
+    tip: "Rebus lama; uratnya berubah jadi tekstur kenyal lembut yang khas.",
+    mistake: "Jangan diburu-buru — masak sebentar bikin alot dan susah dikunyah.",
   },
   {
     id: "oxtail",
@@ -120,7 +144,47 @@ export const CUTS = [
     char: "Bertulang dan kaya kolagen, menghasilkan kaldu gurih yang dalam.",
     method: "Sop buntut, buntut bakar.",
     dishes: ["Sop buntut", "Buntut bakar"],
+    price: 3,
+    tip: "Rebus lama hingga daging hampir lepas dari tulang untuk kaldu maksimal.",
+    mistake: "Kurang waktu rebus bikin daging alot dan kaldu kurang gurih.",
   },
+];
+
+// Steak doneness guide — internal temperature + visual cue. Educational.
+export const DONENESS = [
+  { level: "Rare", tempC: "50-52°C", color: "#8c2f2f", center: "Merah, dingin di tengah", note: "Sangat juicy, tekstur paling lembut." },
+  { level: "Medium Rare", tempC: "55-57°C", color: "#b03a3a", center: "Merah muda hangat, tepi cokelat", note: "Paling disarankan untuk cut empuk seperti tenderloin & ribeye." },
+  { level: "Medium", tempC: "60-63°C", color: "#c86a4a", center: "Merah muda di tengah", note: "Seimbang antara juicy dan matang." },
+  { level: "Medium Well", tempC: "65-68°C", color: "#b9825f", center: "Sedikit merah muda", note: "Lebih kesat, cocok untuk yang kurang suka merah." },
+  { level: "Well Done", tempC: "71°C+", color: "#8a6b55", center: "Cokelat merata", note: "Matang penuh, cenderung lebih kering." },
+];
+
+// Core cooking techniques — when to use which. Educational.
+export const TECHNIQUES = [
+  { icon: "🔥", name: "Grill / Panggang", heat: "Panas tinggi, cepat", best: "Cut empuk: tenderloin, sirloin, ribeye", why: "Membentuk kerak gurih (Maillard) tanpa membuat daging alot." },
+  { icon: "🍳", name: "Pan-sear", heat: "Panas tinggi di wajan", best: "Steak, potongan tebal", why: "Searing mengunci warna & rasa; selesaikan dengan api kecil." },
+  { icon: "🫕", name: "Braising / Semur", heat: "Panas rendah, lama, berkuah", best: "Cut berurat: sengkel, sandung lamur", why: "Kolagen lumer jadi gelatin, daging empuk dan kuah kaya." },
+  { icon: "💧", name: "Rebus / Slow-cook", heat: "Air mendidih pelan, berjam-jam", best: "Buntut, iga, sengkel", why: "Memecah jaringan ikat, menghasilkan kaldu dalam." },
+  { icon: "♨️", name: "Sous-vide", heat: "Air bersuhu presisi, lama", best: "Steak premium", why: "Matang merata persis sampai inti sebelum di-sear." },
+  { icon: "💨", name: "Smoke / Asap", heat: "Panas rendah + asap kayu", best: "Brisket, iga", why: "Aroma smoky; butuh waktu panjang agar empuk." },
+];
+
+// Glossary of meat terms. Educational / adds "premium" feel.
+export const GLOSSARY = [
+  { term: "Marbling", def: "Serat lemak putih yang menyebar di dalam otot. Makin banyak, makin juicy dan beraroma." },
+  { term: "Aging (dry/wet)", def: "Pematangan daging untuk memperkuat rasa dan keempukan. Dry-aging di udara terkontrol, wet-aging dalam vakum." },
+  { term: "Searing", def: "Memanggang permukaan dengan panas tinggi untuk membentuk kerak cokelat yang gurih." },
+  { term: "Resting", def: "Mendiamkan daging 5-10 menit setelah dimasak agar sari daging kembali meresap, tidak tumpah saat dipotong." },
+  { term: "Reaksi Maillard", def: "Reaksi antara protein dan gula saat panas tinggi yang menciptakan warna cokelat dan rasa khas daging panggang." },
+  { term: "Grain (arah serat)", def: "Arah serabut otot. Memotong melawan arah serat membuat daging terasa lebih empuk." },
+];
+
+// Smart buying tips. Practical value for premium users.
+export const BUYING_TIPS = [
+  { icon: "💰", title: "Sesuaikan cut dengan budget", text: "Cut mahal (tenderloin) untuk steak; cut murah berurat (sengkel, sandung lamur) justru juara untuk masakan lama." },
+  { icon: "🧊", title: "Perhatikan rantai dingin", text: "Beli daging yang dipajang dingin. Daging suhu ruang terlalu lama lebih cepat turun kualitas." },
+  { icon: "✂️", title: "Minta dipotong sesuai kebutuhan", text: "Tukang daging bisa memotong searah/melawan serat. Sebut rencana masakmu agar dapat potongan tepat." },
+  { icon: "⚖️", title: "Lemak bukan musuh", text: "Sedikit marbling dan lapisan lemak menambah rasa. Jangan selalu pilih yang paling tanpa lemak." },
 ];
 
 export const STORAGE_TIPS = [
