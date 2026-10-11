@@ -16,12 +16,20 @@ const GEMINI_KEY = (import.meta.env.VITE_GEMINI_API_KEY || "").trim();
 const FORCED_MODEL = (import.meta.env.VITE_GEMINI_MODEL || "").trim();
 const API_BASE = "https://generativelanguage.googleapis.com/v1beta";
 
-// Preferred models, best first. We use the "-latest" aliases because pinned
-// version names (e.g. gemini-2.5-flash) get retired for new users and return
-// 404 even when the /models listing still reports them.
+// --- Speed tuning (tweak via .env) ------------------------------------------
+// Hard cap on how long we wait for the AI before giving up (ms).
+const TIMEOUT_MS = Number(import.meta.env.VITE_AI_TIMEOUT_MS) || 12000;
+// Max image dimension sent to the API. Smaller = faster upload & processing.
+const MAX_IMAGE_DIM = Number(import.meta.env.VITE_AI_IMAGE_DIM) || 768;
+// Cap output tokens so generation finishes quickly.
+const MAX_OUTPUT_TOKENS = 700;
+
+// Preferred models, FASTEST first. flash-lite is quicker and plenty good for a
+// visual screening. We use "-latest" aliases because pinned version names
+// (e.g. gemini-2.5-flash) get retired for new users and return 404.
 const PREFERRED_MODELS = [
-  "gemini-flash-latest",
   "gemini-flash-lite-latest",
+  "gemini-flash-latest",
   "gemini-pro-latest",
 ];
 
@@ -101,16 +109,33 @@ async function callWithFallback(body) {
   for (const model of models) {
     for (let attempt = 0; attempt < 2; attempt++) {
       let res, json;
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
       try {
         res = await fetch(
           `${API_BASE}/models/${model}:generateContent?key=${GEMINI_KEY}`,
-          { method: "POST", headers: { "Content-Type": "application/json" }, body }
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body,
+            signal: controller.signal,
+          }
         );
         json = await res.json();
-      } catch {
+      } catch (err) {
+        clearTimeout(timer);
+        if (err?.name === "AbortError") {
+          lastErr = new AnalyzeError(
+            `AI terlalu lama menjawab (lebih dari ${Math.round(
+              TIMEOUT_MS / 1000
+            )} detik). Coba lagi atau pakai foto lebih kecil.`
+          );
+          break; // timed out — try next (faster) model
+        }
         lastErr = new AnalyzeError("Tidak bisa menghubungi Gemini. Cek koneksi.");
         break; // network error — try next model
       }
+      clearTimeout(timer);
 
       if (res.ok) {
         resolvedModel = model; // cache the one that worked
@@ -120,12 +145,16 @@ async function callWithFallback(body) {
       const status = res.status;
       lastErr = new AnalyzeError(describeApiError(json, status));
 
-      if (status === 503 && attempt === 0) {
-        await sleep(1200);
-        continue; // retry same model once
+      // 503 (high demand) or 429 (rate/quota): retry once, then move on.
+      if ((status === 503 || status === 429) && attempt === 0) {
+        await sleep(status === 429 ? 2000 : 1200);
+        continue; // retry same model once (handles per-minute RPM limits)
       }
-      if (status === 404 || status === 503) break; // try next model
-      throw lastErr; // 400/401/403/429 — real problem, stop
+      // 404 (retired), 503 (still busy), 429 (daily quota likely exhausted):
+      // fall back to the next model in the list instead of giving up.
+      if (status === 404 || status === 503 || status === 429) break;
+
+      throw lastErr; // 400/401/403 — real problem (bad key/forbidden), stop
     }
   }
   throw lastErr || new AnalyzeError("Semua model Gemini gagal dihubungi.");
@@ -246,7 +275,7 @@ function describeApiError(json, status) {
   if (status === 403)
     return "Akses ditolak (403). Pastikan Generative Language API aktif untuk key ini.";
   if (status === 429)
-    return "Kuota API habis atau terlalu banyak permintaan (429). Coba lagi nanti.";
+    return "Semua model kena limit/kuota harian habis (429). Coba lagi nanti atau pakai API key lain.";
   if (status === 404)
     return "Model tidak ditemukan (404). Coba kosongkan VITE_GEMINI_MODEL agar auto-detect.";
   return `Gemini error ${status}: ${msg || "tidak diketahui"}`;
