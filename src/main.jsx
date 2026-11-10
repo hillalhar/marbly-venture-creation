@@ -4,20 +4,31 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App.jsx";
 import Login from "./Login.jsx";
 import { AuthProvider, useAuth } from "./lib/auth.jsx";
+import { CartProvider } from "./lib/cart.jsx";
+import { FridgeProvider } from "./lib/fridge.jsx";
+import { FavoritesProvider } from "./lib/favorites.jsx";
+import { ToastProvider } from "./lib/toast.jsx";
 import "./index.css";
 
 function Root() {
-  const { ready, isAuthed } = useAuth();
-  if (!ready) return null; // avoid flash while restoring session
+  const { isAuthed } = useAuth();
   return isAuthed ? <App /> : <Login />;
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
-      <AuthProvider>
-        <Root />
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <CartProvider>
+            <FridgeProvider>
+              <FavoritesProvider>
+                <Root />
+              </FavoritesProvider>
+            </FridgeProvider>
+          </CartProvider>
+        </AuthProvider>
+      </ToastProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
