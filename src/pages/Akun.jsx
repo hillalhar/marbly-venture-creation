@@ -11,6 +11,7 @@ import { usePageTitle } from "../lib/hooks.js";
 import { useToast } from "../lib/toast.jsx";
 import AddressForm, { formatAddress } from "../components/AddressForm.jsx";
 import ProductCard from "../components/ProductCard.jsx";
+import Icon from "../components/icons.jsx";
 import { RecipeCard } from "./Resep.jsx";
 import { EmptyState, Field, Modal, Tabs } from "../components/ui.jsx";
 
@@ -57,7 +58,7 @@ export default function Akun() {
             <p className="text-xs text-ink/60">Aktif</p>
           </Link>
           <Link to="/kulkas" className="rounded-2xl bg-creamsoft px-3 py-2 hover:bg-cream">
-            <p className="font-display text-xl font-bold">{items.length}</p>
+            <p className="font-display text-xl font-bold">{isPremium ? items.length : <Icon name="lock" className="mx-auto my-1 h-4 w-4 text-ink/35" />}</p>
             <p className="text-xs text-ink/60">Di kulkas</p>
           </Link>
         </div>
@@ -74,8 +75,8 @@ export default function Akun() {
       </div>
 
       <div className="mt-8 grid gap-2 sm:grid-cols-3">
-        <Link to="/belajar" className="card p-4 font-bold hover:bg-cream">Belajar cut sapi</Link>
-        <Link to="/alat" className="card p-4 font-bold hover:bg-cream">Alat dapur</Link>
+        <Link to="/belajar" className="card flex items-center justify-between p-4 font-bold hover:bg-cream">Belajar {!isPremium && <Icon name="lock" className="h-4 w-4 text-ink/35" />}</Link>
+        <Link to="/alat" className="card flex items-center justify-between p-4 font-bold hover:bg-cream">Alat dapur {!isPremium && <Icon name="lock" className="h-4 w-4 text-ink/35" />}</Link>
         <button
           onClick={() => {
             logout();
@@ -240,13 +241,13 @@ const PLANS = [
     id: "free",
     name: "Free",
     price: "Rp0",
-    perks: ["Deteksi kesegaran & marbling", "Belanja di toko", "Kulkas saya & alat dapur", "Lacak pesanan"],
+    perks: ["Deteksi kesegaran & marbling", "Belanja daging di toko", "Lacak pesanan & ulasan", "Daftar resep & bahan"],
   },
   {
     id: "premium",
     name: "Premium",
     price: "Rp29.000/bulan",
-    perks: ["Semua fitur Free", "Deteksi bagian/cut daging oleh AI", "Rekomendasi masakan per cut", "Buku resep lengkap + mode masak", "Pusat belajar: peta sapi, kematangan, teknik"],
+    perks: ["Semua fitur Free", "Kulkas Saya: stok & batas simpan otomatis", "Alat dapur: rencana mingguan, acara & kurban, multi-timer, marinasi, konversi", "Belajar: artikel lengkap & alat interaktif", "Deteksi bagian/cut daging + saran masakan", "Langkah resep + mode masak"],
   },
 ];
 

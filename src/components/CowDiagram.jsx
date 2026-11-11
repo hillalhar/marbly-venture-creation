@@ -10,8 +10,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 const NEUTRAL = "#f3e7d8";
-const ACTIVE = "#f26d6d";
-const BODY = "#1a1413";
+const VISITED = "#f6d3d1";
+const ACTIVE = "#e35f5e";
+const BODY = "#262222";
 
 // app cut id -> chart region ids it covers. Every region in the chart is
 // mapped to exactly one of our cuts so nothing is left dangling.
@@ -62,7 +63,7 @@ function processSvg(raw) {
   return svg;
 }
 
-export default function CowDiagram({ activeId, onSelect }) {
+export default function CowDiagram({ activeId, onSelect, visited = [] }) {
   const ref = useRef(null);
   const [raw, setRaw] = useState("");
 
@@ -111,8 +112,10 @@ export default function CowDiagram({ activeId, onSelect }) {
       <style>{`
         .cut { fill: ${NEUTRAL} !important; stroke: ${BODY}; stroke-width: 1; cursor: pointer; transition: fill .2s; }
         .cut:hover { fill: #ead9c4 !important; }
+        ${visited.map((v) => `.cut-${v}`).join(", ") || ".cut-none"} { fill: ${VISITED} !important; }
         .cut-${activeId} { fill: ${ACTIVE} !important; }
         .cow-body { fill: ${BODY} !important; }
+        svg text, svg tspan { display: none; }
       `}</style>
       <div dangerouslySetInnerHTML={{ __html: html }} />
     </div>

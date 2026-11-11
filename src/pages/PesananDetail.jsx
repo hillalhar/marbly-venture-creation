@@ -7,7 +7,8 @@ import { useFridge } from "../lib/fridge.jsx";
 import { useNow, usePageTitle } from "../lib/hooks.js";
 import { useToast } from "../lib/toast.jsx";
 import { formatAddress } from "../components/AddressForm.jsx";
-import { EmptyState, Modal, Row, StarInput } from "../components/ui.jsx";
+import { EmptyState, Modal, PremiumHint, Row, StarInput } from "../components/ui.jsx";
+import { useAuth } from "../lib/auth.jsx";
 import { ProductThumb } from "../components/ProductCard.jsx";
 
 const CANCEL_REASONS = ["Ingin ganti metode pembayaran", "Salah pilih produk / jumlah", "Ingin ubah alamat atau jadwal", "Lainnya"];
@@ -43,6 +44,7 @@ function Detail({ order: o }) {
   const toast = useToast();
   const { payOrder, cancelOrder, markStocked, reorder, addReview } = useCart();
   const { addFromOrder } = useFridge();
+  const { isPremium } = useAuth();
   const s = orderState(o, now);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [reason, setReason] = useState(CANCEL_REASONS[0]);
@@ -245,10 +247,13 @@ function Detail({ order: o }) {
           </section>
 
           <div className="no-print grid gap-2">
-            {s.arrived && !o.stocked && <button onClick={stock} className="btn-coral">🧊 Masukkan ke kulkas</button>}
-            {o.stocked && <Link to="/kulkas" className="btn-outline">✓ Sudah di kulkas · Lihat</Link>}
-            <button onClick={again} className="btn-outline">🔁 Beli lagi</button>
-            {s.stageIndex >= 0 && <button onClick={() => window.print()} className="btn-ghost">🧾 Cetak invoice</button>}
+            {isPremium && s.arrived && !o.stocked && <button onClick={stock} className="btn-coral">Masukkan ke Kulkas Saya</button>}
+            {isPremium && o.stocked && <Link to="/kulkas" className="btn-outline">Sudah di kulkas · Lihat</Link>}
+            {!isPremium && s.stageIndex >= 0 && (
+              <PremiumHint>{s.arrived ? "Catat daging ini di Kulkas Saya untuk memantau batas simpannya." : "Setelah tiba, daging bisa dicatat di Kulkas Saya untuk memantau batas simpan."}</PremiumHint>
+            )}
+            <button onClick={again} className="btn-outline">Beli lagi</button>
+            {s.stageIndex >= 0 && <button onClick={() => window.print()} className="btn-ghost">Cetak invoice</button>}
             {s.canCancel && <button onClick={() => setCancelOpen(true)} className="btn-ghost text-coral">Batalkan pesanan</button>}
           </div>
         </aside>

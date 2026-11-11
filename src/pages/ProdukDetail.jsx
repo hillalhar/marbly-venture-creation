@@ -9,7 +9,8 @@ import { usePageTitle } from "../lib/hooks.js";
 import ProductCard, { FavButton, Photo, useAddToCart } from "../components/ProductCard.jsx";
 import { RecipeCard } from "./Resep.jsx";
 import Icon from "../components/icons.jsx";
-import { Breadcrumb, EmptyState, Price, QtyStepper, SectionHeader, Stars, Tabs } from "../components/ui.jsx";
+import { Breadcrumb, EmptyState, PremiumHint, Price, QtyStepper, SectionHeader, Stars, Tabs } from "../components/ui.jsx";
+import { useAuth } from "../lib/auth.jsx";
 
 export default function ProdukDetail() {
   const { sku } = useParams();
@@ -27,6 +28,7 @@ export default function ProdukDetail() {
 
 function Detail({ p }) {
   const navigate = useNavigate();
+  const { isPremium } = useAuth();
   const { available, getReviews } = useCart();
   const addToCart = useAddToCart();
   const [prep, setPrep] = useState(p.prep[0]);
@@ -155,7 +157,7 @@ function Detail({ p }) {
               <div className="space-y-3 text-sm">
                 <p className="rounded-xl bg-mintsoft p-4 leading-relaxed"><span className="font-semibold">Tips:</span> {cut.tip}</p>
                 <p className="rounded-xl bg-coralsoft p-4 leading-relaxed"><span className="font-semibold text-coral">Hindari:</span> {cut.mistake}</p>
-                <Link to="/belajar" className="inline-block font-semibold text-coral hover:underline">Pelajari semua cut</Link>
+                {isPremium && <Link to="/belajar" className="inline-block font-semibold text-coral hover:underline">Pelajari semua cut</Link>}
               </div>
             </div>
           )}
@@ -164,9 +166,13 @@ function Detail({ p }) {
               <Info title="Kulkas 0–4°C" text={`Tahan ± ${shelfDays("chiller", p.ground)} hari. Simpan di rak paling bawah dalam wadah tertutup.`} />
               <Info title="Freezer −18°C" text={`Tahan ± ${Math.round(shelfDays("freezer", p.ground) / 30)} bulan. Bungkus rapat agar tidak freezer burn.`} />
               <Info title="Mencairkan" text="Pindahkan ke kulkas semalaman. Jangan dicairkan di suhu ruang." />
-              <p className="text-xs text-ink/45 sm:col-span-3">
-                Setelah pesanan tiba, masukkan ke <Link to="/kulkas" className="font-semibold text-coral">Kulkas Saya</Link> agar batas simpannya dipantau otomatis.
-              </p>
+              {isPremium ? (
+                <p className="text-xs text-ink/45 sm:col-span-3">
+                  Setelah pesanan tiba, masukkan ke <Link to="/kulkas" className="font-semibold text-coral">Kulkas Saya</Link> agar batas simpannya dipantau otomatis.
+                </p>
+              ) : (
+                <PremiumHint className="sm:col-span-3">Pantau batas simpan otomatis di Kulkas Saya setelah pesanan tiba.</PremiumHint>
+              )}
             </div>
           )}
           {tab === "gizi" && nutrition && (

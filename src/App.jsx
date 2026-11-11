@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout.jsx";
 import Home from "./pages/Home.jsx";
 import Belajar from "./pages/Belajar.jsx";
+import Artikel from "./pages/Artikel.jsx";
 import Resep from "./pages/Resep.jsx";
 import ResepDetail from "./pages/ResepDetail.jsx";
 import Toko from "./pages/Toko.jsx";
@@ -22,6 +23,7 @@ export default function App() {
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
         <Route path="/belajar" element={<Belajar />} />
+        <Route path="/belajar/artikel/:slug" element={<Artikel />} />
         <Route path="/resep" element={<Resep />} />
         <Route path="/resep/:id" element={<ResepDetail />} />
         <Route path="/toko" element={<Toko />} />

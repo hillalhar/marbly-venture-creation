@@ -4,6 +4,7 @@ import { RECIPES } from "../data/recipes.js";
 import { CUTS } from "../data/meat.js";
 import { useFavorites } from "../lib/favorites.jsx";
 import { useFridge } from "../lib/fridge.jsx";
+import { useAuth } from "../lib/auth.jsx";
 import { usePageTitle } from "../lib/hooks.js";
 import { FavButton, Photo } from "../components/ProductCard.jsx";
 import Icon from "../components/icons.jsx";
@@ -45,13 +46,14 @@ export default function Resep() {
   usePageTitle("Resep");
   const { has } = useFavorites();
   const { items: fridge } = useFridge();
+  const { isPremium } = useAuth();
   const [q, setQ] = useState("");
   const [cut, setCut] = useState("semua");
   const [time, setTime] = useState("semua");
   const [onlyFav, setOnlyFav] = useState(false);
   const [fromFridge, setFromFridge] = useState(false);
 
-  const fridgeCuts = new Set(fridge.map((i) => i.cutId));
+  const fridgeCuts = new Set(isPremium ? fridge.filter((i) => i.expiresAt > Date.now()).map((i) => i.cutId) : []);
   const usedCuts = CUTS.filter((c) => RECIPES.some((r) => r.cutId === c.id));
 
   const list = useMemo(() => {
@@ -87,10 +89,12 @@ export default function Resep() {
           <select value={time} onChange={(e) => setTime(e.target.value)} className="input w-auto rounded-full py-1.5" aria-label="Durasi">
             {TIME.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
           </select>
-          <label className="flex items-center gap-2 font-medium text-ink/65">
-            <input type="checkbox" checked={fromFridge} onChange={(e) => setFromFridge(e.target.checked)} className="h-4 w-4 accent-coral" />
-            Pakai stok kulkas
-          </label>
+          {isPremium && (
+            <label className="flex items-center gap-2 font-medium text-ink/65">
+              <input type="checkbox" checked={fromFridge} onChange={(e) => setFromFridge(e.target.checked)} className="h-4 w-4 accent-coral" />
+              Pakai stok kulkas
+            </label>
+          )}
           <label className="flex items-center gap-2 font-medium text-ink/65">
             <input type="checkbox" checked={onlyFav} onChange={(e) => setOnlyFav(e.target.checked)} className="h-4 w-4 accent-coral" />
             Favorit saja

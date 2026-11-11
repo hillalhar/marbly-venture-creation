@@ -8,6 +8,7 @@ import { CartProvider } from "./lib/cart.jsx";
 import { FridgeProvider } from "./lib/fridge.jsx";
 import { FavoritesProvider } from "./lib/favorites.jsx";
 import { ToastProvider } from "./lib/toast.jsx";
+import { TimerProvider } from "./lib/timers.jsx";
 import "./index.css";
 
 function Root() {
@@ -23,7 +24,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <CartProvider>
             <FridgeProvider>
               <FavoritesProvider>
-                <Root />
+                <TimerProvider>
+                  <Root />
+                </TimerProvider>
               </FavoritesProvider>
             </FridgeProvider>
           </CartProvider>

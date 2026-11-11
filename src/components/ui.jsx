@@ -65,6 +65,36 @@ export function PremiumLock({ title, desc, features, onUpgrade }) {
   );
 }
 
+// Quiet, inline upsell: one line with a lock and a link. Never blocks the flow.
+export function PremiumHint({ children, cta = "Lihat Premium", className = "" }) {
+  return (
+    <p className={`flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl bg-creamsoft px-3 py-2.5 text-sm text-ink/60 ring-1 ring-ink/5 ${className}`}>
+      <Icon name="lock" className="h-4 w-4 shrink-0 text-coral" />
+      <span className="flex-1">{children}</span>
+      <Link to="/akun?tab=langganan" className="shrink-0 font-semibold text-coral hover:underline">
+        {cta}
+      </Link>
+    </p>
+  );
+}
+
+// Full-page gate for premium-only pages: page header + lock + optional preview.
+export function PremiumGate({ eyebrow, title, desc, lockTitle, lockDesc, features, onUpgrade, children }) {
+  return (
+    <div>
+      <PageHero badge={eyebrow} title={title} desc={desc} />
+      <div className="mx-auto max-w-6xl space-y-10 px-5 py-8 sm:py-10">
+        <PremiumLock title={lockTitle} desc={lockDesc} features={features} onUpgrade={onUpgrade} />
+        {children && (
+          <div aria-hidden="true" className="pointer-events-none select-none opacity-60 [mask-image:linear-gradient(to_bottom,black,transparent)]">
+            {children}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function PremiumPage(props) {
   return (
     <div className="mx-auto max-w-3xl px-5 py-16">
@@ -93,7 +123,7 @@ export function QtyStepper({ value, onChange, min = 1, max = 99, size = "md" }) 
         onClick={() => onChange(value - 1)}
         disabled={value <= min}
         className={`${s} grid place-items-center rounded-full text-ink/70 hover:bg-ink/5 disabled:opacity-30`}
-        aria-label="Kurangi"
+        aria-label="Kurangi jumlah"
       >
         <Icon name="minus" className="h-4 w-4" />
       </button>
@@ -105,7 +135,7 @@ export function QtyStepper({ value, onChange, min = 1, max = 99, size = "md" }) 
         onClick={() => onChange(value + 1)}
         disabled={value >= max}
         className={`${s} grid place-items-center rounded-full text-ink/70 hover:bg-ink/5 disabled:opacity-30`}
-        aria-label="Tambah"
+        aria-label="Tambah jumlah"
       >
         <Icon name="plus" className="h-4 w-4" />
       </button>

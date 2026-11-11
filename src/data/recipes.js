@@ -210,10 +210,61 @@ export const RECIPES = [
   },
 ];
 
+// Raw meat (grams) for the recipe's default servings, and the free cutting
+// option that suits it. Used by the meal planner, event calculator and the
+// "beli bahan" box so they all agree.
+const MEAT = {
+  rendang: { meatGrams: 1000, prep: "dadu" },
+  "ribeye-steak": { meatGrams: 600, prep: "steak" },
+  "sop-buntut": { meatGrams: 1000, prep: "potong" },
+  rawon: { meatGrams: 750, prep: "dadu" },
+  "iga-bakar": { meatGrams: 1000, prep: "potong" },
+  bakso: { meatGrams: 500, prep: "giling" },
+};
+
 // Photos live in /public/images/recipes/<id>.jpg (credits in photoCredits.js).
 RECIPES.forEach((r) => {
   r.image = `/images/recipes/${r.id}.jpg`;
+  Object.assign(r, MEAT[r.id] || { meatGrams: 500, prep: null });
 });
+
+export const meatPerServing = (r) => r.meatGrams / r.serves;
+
+const COUNT_UNITS = /^(buah|lembar|batang|potong|siung|butir|sdm|sdt)/i;
+const fmtNum = (n) => (Math.round(n * 10) / 10).toString().replace(".", ",");
+
+// Scale a free-text quantity like "1 kg", "1,5 liter", "2-3 batang".
+export function scaleQty(qty, factor) {
+  const m = String(qty).match(/^(\d+(?:[.,]\d+)?)(?:\s*-\s*(\d+(?:[.,]\d+)?))?\s*(.*)$/);
+  if (!m || factor === 1) return qty;
+  const num = (s) => parseFloat(s.replace(",", "."));
+  let unit = m[3];
+  const scale = (v) => {
+    let x = num(v) * factor;
+    if (COUNT_UNITS.test(unit)) x = Math.max(1, Math.round(x * 2) / 2);
+    return x;
+  };
+  let a = scale(m[1]);
+  let b = m[2] ? scale(m[2]) : null;
+  if (/^kg\b/i.test(unit) && a < 1) {
+    a *= 1000;
+    if (b) b *= 1000;
+    unit = unit.replace(/^kg/i, "g");
+    return `${Math.round(a / 10) * 10}${b ? `-${Math.round(b / 10) * 10}` : ""} ${unit}`;
+  }
+  if (/^g\b/i.test(unit)) {
+    return `${Math.round(a / 10) * 10}${b ? `-${Math.round(b / 10) * 10}` : ""} ${unit}`;
+  }
+  return `${fmtNum(a)}${b ? `-${fmtNum(b)}` : ""} ${unit}`.trim();
+}
+
+// Minutes mentioned in a step ("rebus 2-3 jam", "5 menit"); uses the lower bound.
+export function stepMinutes(text) {
+  const m = String(text).match(/(\d+(?:[.,]\d+)?)(?:\s*-\s*\d+(?:[.,]\d+)?)?\s*(menit|jam)\b/i);
+  if (!m) return null;
+  const v = parseFloat(m[1].replace(",", "."));
+  return /jam/i.test(m[2]) ? v * 60 : v;
+}
 
 export function getRecipe(id) {
   return RECIPES.find((r) => r.id === id) || null;

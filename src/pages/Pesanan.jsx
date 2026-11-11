@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { formatIDR } from "../data/products.js";
 import { ORDER_FILTERS, orderState } from "../data/shop.js";
 import { useCart } from "../lib/cart.jsx";
+import { useAuth } from "../lib/auth.jsx";
 import { useNow, usePageTitle } from "../lib/hooks.js";
 import { EmptyState, Tabs } from "../components/ui.jsx";
 import { ProductThumb } from "../components/ProductCard.jsx";
@@ -10,6 +11,7 @@ import { ProductThumb } from "../components/ProductCard.jsx";
 export default function Pesanan() {
   usePageTitle("Pesanan saya");
   const { orders } = useCart();
+  const { isPremium } = useAuth();
   const now = useNow(3000);
   const [filter, setFilter] = useState("semua");
 
@@ -63,8 +65,10 @@ export default function Pesanan() {
                       ⏳ Selesaikan pembayaran sebelum {new Date(s.deadline).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}
                     </p>
                   )}
-                  {s.arrived && !o.stocked && (
-                    <p className="mt-3 rounded-full bg-mintsoft px-3 py-1 text-xs font-bold">🧊 Pesanan tiba. Masukkan ke kulkas & beri ulasan →</p>
+                  {s.arrived && (isPremium ? !o.stocked : !Object.keys(o.reviewed || {}).length) && (
+                    <p className="mt-3 rounded-full bg-mintsoft px-3 py-1 text-xs font-bold">
+                      {isPremium && !o.stocked ? "Pesanan tiba. Masukkan ke Kulkas Saya & beri ulasan" : "Pesanan tiba. Beri ulasan untuk produknya"}
+                    </p>
                   )}
                 </Link>
               </li>

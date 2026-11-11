@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getRecipe, RECIPES } from "../data/recipes.js";
+import { getRecipe, RECIPES, scaleQty, stepMinutes } from "../data/recipes.js";
 import { formatIDR, getProduct } from "../data/products.js";
 import { CUTS } from "../data/meat.js";
 import { useAuth } from "../lib/auth.jsx";
@@ -9,45 +9,11 @@ import { usePageTitle } from "../lib/hooks.js";
 import { useToast } from "../lib/toast.jsx";
 import { FavButton, Photo, ProductThumb, useAddToCart } from "../components/ProductCard.jsx";
 import { RecipeCard } from "./Resep.jsx";
-import { Breadcrumb, EmptyState, PremiumLock, QtyStepper } from "../components/ui.jsx";
+import { Breadcrumb, EmptyState, PremiumHint, PremiumLock, QtyStepper } from "../components/ui.jsx";
+import Icon from "../components/icons.jsx";
+import { useTimers } from "../lib/timers.jsx";
 
 const DIFF = ["Mudah", "Sedang", "Mahir"];
-const RECIPE_PREP = { rendang: "dadu", rawon: "dadu", bakso: "giling", "ribeye-steak": "steak", "sop-buntut": "potong", "iga-bakar": "potong" };
-const COUNT_UNITS = /^(buah|lembar|batang|potong|siung|butir|sdm|sdt)/i;
-
-const fmtNum = (n) => (Math.round(n * 10) / 10).toString().replace(".", ",");
-
-// Scale a free-text quantity like "1 kg", "1,5 liter", "2-3 batang".
-export function scaleQty(qty, factor) {
-  const m = String(qty).match(/^(\d+(?:[.,]\d+)?)(?:\s*-\s*(\d+(?:[.,]\d+)?))?\s*(.*)$/);
-  if (!m || factor === 1) return qty;
-  const num = (s) => parseFloat(s.replace(",", "."));
-  let unit = m[3];
-  const scale = (v) => {
-    let x = num(v) * factor;
-    if (COUNT_UNITS.test(unit)) x = Math.max(1, Math.round(x * 2) / 2);
-    return x;
-  };
-  let a = scale(m[1]);
-  let b = m[2] ? scale(m[2]) : null;
-  if (/^kg\b/i.test(unit) && a < 1) {
-    a *= 1000;
-    if (b) b *= 1000;
-    unit = unit.replace(/^kg/i, "g");
-    return `${Math.round(a / 10) * 10}${b ? `-${Math.round(b / 10) * 10}` : ""} ${unit}`;
-  }
-  if (/^g\b/i.test(unit)) {
-    return `${Math.round(a / 10) * 10}${b ? `-${Math.round(b / 10) * 10}` : ""} ${unit}`;
-  }
-  return `${fmtNum(a)}${b ? `-${fmtNum(b)}` : ""} ${unit}`.trim();
-}
-
-function gramsOf(qty) {
-  const m = String(qty).match(/^(\d+(?:[.,]\d+)?)\s*(kg|g)\b/i);
-  if (!m) return null;
-  const v = parseFloat(m[1].replace(",", "."));
-  return m[2].toLowerCase() === "kg" ? v * 1000 : v;
-}
 
 export default function ResepDetail() {
   const { id } = useParams();
@@ -65,7 +31,9 @@ export default function ResepDetail() {
 
 function Detail({ recipe }) {
   const { isPremium, upgradeToPremium } = useAuth();
-  const { items: fridge, consume } = useFridge();
+  const { items: fridgeAll, consume } = useFridge();
+  const fridge = isPremium ? fridgeAll.filter((i) => i.expiresAt > Date.now()) : [];
+  const { add: addTimer } = useTimers();
   const addToCart = useAddToCart();
   const toast = useToast();
   const [serves, setServes] = useState(recipe.serves);
@@ -76,8 +44,8 @@ function Detail({ recipe }) {
   const factor = serves / recipe.serves;
   const cut = CUTS.find((c) => c.id === recipe.cutId);
   const product = recipe.productSku ? getProduct(recipe.productSku) : null;
-  const prep = product && RECIPE_PREP[recipe.id] && product.prep.includes(RECIPE_PREP[recipe.id]) ? RECIPE_PREP[recipe.id] : product?.prep[0];
-  const meatGrams = (gramsOf(recipe.ingredients[0]?.qty) ?? product?.weight ?? 500) * factor;
+  const prep = product && recipe.prep && product.prep.includes(recipe.prep) ? recipe.prep : product?.prep[0];
+  const meatGrams = recipe.meatGrams * factor;
   const packs = product ? Math.max(1, Math.ceil(meatGrams / product.weight)) : 0;
   const inFridge = fridge.filter((i) => i.cutId === recipe.cutId).sort((a, b) => a.expiresAt - b.expiresAt);
   const fridgeGrams = inFridge.reduce((n, i) => n + i.grams, 0);
@@ -145,7 +113,7 @@ function Detail({ recipe }) {
           {product && (
             <section className="card p-5">
               <h2 className="font-display text-lg font-bold">Bahan utama untuk {serves} porsi</h2>
-              {fridgeGrams > 0 && (
+              {isPremium && fridgeGrams > 0 && (
                 <p className="mt-2 rounded-xl bg-mintsoft px-3 py-2 text-sm">
                   Di kulkasmu ada <strong>{fridgeGrams} g</strong> {cut?.name}.{" "}
                   {fridgeGrams >= meatGrams ? "Cukup untuk resep ini." : `Kurang ± ${Math.round(meatGrams - fridgeGrams)} g.`}
@@ -161,6 +129,13 @@ function Detail({ recipe }) {
               <button onClick={() => addToCart(product, packs, prep)} className="btn-coral mt-3 w-full">
                 + {packs} pak ke keranjang · {formatIDR(product.price * packs)}
               </button>
+              {isPremium ? (
+                <Link to={`/alat?tab=rencana&resep=${recipe.id}`} className="btn-outline btn-sm mt-2 w-full">
+                  <Icon name="clock" className="h-4 w-4" /> Masukkan ke rencana masak
+                </Link>
+              ) : (
+                <PremiumHint className="mt-3">Cek stok kulkas &amp; rencanakan menu mingguan</PremiumHint>
+              )}
             </section>
           )}
         </div>
@@ -194,17 +169,27 @@ function Detail({ recipe }) {
                   {recipe.steps.map((s, i) => {
                     const done = !!checked[i];
                     const Tag = cooking ? "button" : "div";
+                    const mins = stepMinutes(s);
                     return (
                       <li key={i}>
                         <Tag
                           {...(cooking ? { type: "button", onClick: () => setChecked({ ...checked, [i]: !done }) } : {})}
                           className={`flex w-full gap-3 rounded-2xl p-2 text-left ${cooking ? "hover:bg-cream" : ""} ${cooking && done ? "opacity-50" : ""}`}
                         >
-                          <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border border-ink/10 font-display text-sm font-bold ${done ? "bg-mint" : "bg-sun"}`}>
+                          <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border border-ink/10 font-display text-sm font-bold ${done ? "bg-mint text-white" : "bg-sun"}`}>
                             {done ? "✓" : i + 1}
                           </span>
                           <span className={`pt-1 ${cooking ? "text-lg" : ""} ${done ? "line-through" : "text-ink/80"}`}>{s}</span>
                         </Tag>
+                        {mins && (
+                          <button
+                            type="button"
+                            onClick={() => addTimer(`${recipe.name}: langkah ${i + 1}`, mins)}
+                            className="ml-[52px] mt-1 inline-flex items-center gap-1.5 rounded-full bg-creamsoft px-3 py-1 text-xs font-semibold text-ink/70 ring-1 ring-ink/10 hover:text-coral"
+                          >
+                            <Icon name="clock" className="h-3.5 w-3.5" /> Timer {mins >= 60 ? `${mins / 60} jam` : `${mins} menit`}
+                          </button>
+                        )}
                       </li>
                     );
                   })}
@@ -219,7 +204,7 @@ function Detail({ recipe }) {
                     )}
                   </div>
                 )}
-                <Link to="/alat" className="mt-4 inline-block text-sm font-bold text-coral hover:underline">Buka timer & kalkulator waktu masak →</Link>
+                <Link to="/alat?tab=timer" className="mt-4 inline-block text-sm font-bold text-coral hover:underline">Buka multi-timer →</Link>
               </section>
 
               <section className="card p-5">

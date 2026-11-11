@@ -7,7 +7,8 @@ import { getProduct, PRODUCTS } from "../data/products.js";
 import { RECIPES } from "../data/recipes.js";
 import { DAY, timeLeftLabel } from "../data/tools.js";
 import { useAddToCart } from "../components/ProductCard.jsx";
-import { EmptyState, Field, Modal, PageHero, Tabs } from "../components/ui.jsx";
+import { EmptyState, Field, Modal, PageHero, PremiumGate, Tabs } from "../components/ui.jsx";
+import { useAuth } from "../lib/auth.jsx";
 
 const SINGLE = PRODUCTS.filter((p) => !p.bundle);
 
@@ -20,6 +21,57 @@ function statusOf(item, now) {
 
 export default function Kulkas() {
   usePageTitle("Kulkas saya");
+  const { isPremium, upgradeToPremium } = useAuth();
+  if (!isPremium) {
+    return (
+      <PremiumGate
+        eyebrow="Kulkas Saya"
+        title="Stok daging, tanpa ada yang terbuang"
+        desc="Catat daging di kulkas dan freezer. marbly menghitung batas simpan dan mengingatkan mana yang harus dimasak lebih dulu."
+        lockTitle="Kulkas Saya khusus Premium"
+        lockDesc="Upgrade untuk memantau stok daging. Pesanan dari toko bisa langsung dimasukkan ke kulkas begitu tiba."
+        features={[
+          "Batas simpan dihitung otomatis untuk kulkas dan freezer",
+          "Pengingat daging yang harus dimasak hari ini",
+          "Pesanan yang tiba masuk kulkas dengan sekali klik",
+          "Stok kulkas dipakai otomatis di rencana masak mingguan",
+        ]}
+        onUpgrade={upgradeToPremium}
+      >
+        <FridgePreview />
+      </PremiumGate>
+    );
+  }
+  return <KulkasContent />;
+}
+
+// Static example shown behind the premium lock.
+function FridgePreview() {
+  const rows = [
+    ["Lamusir (Ribeye)", "600 g · Kulkas", "Aman", "2 hari lagi", "bg-mintsoft", 70],
+    ["Sandung Lamur (Brisket)", "500 g · Kulkas", "Masak hari ini", "8 jam lagi", "bg-sun", 20],
+    ["Buntut (Oxtail)", "700 g · Freezer", "Aman", "176 hari lagi", "bg-mintsoft", 95],
+  ];
+  return (
+    <div className="grid gap-4 md:grid-cols-3">
+      {rows.map(([n, d, st, left, cls, pct]) => (
+        <div key={n} className="card p-5">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="font-display font-bold">{n}</p>
+              <p className="text-sm text-ink/55">{d}</p>
+            </div>
+            <span className={`badge ${cls}`}>{st}</span>
+          </div>
+          <p className="mt-3 flex justify-between text-xs font-semibold"><span className="text-ink/55">Batas simpan</span><span>{left}</span></p>
+          <div className="track mt-1"><div className="h-full rounded-full bg-mint" style={{ width: `${pct}%` }} /></div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function KulkasContent() {
   const { items, addItem, remove, moveTo, consume } = useFridge();
   const toast = useToast();
   useNow(30000); // re-render periodically so countdowns stay live
@@ -62,8 +114,11 @@ export default function Kulkas() {
       <section className="mx-auto max-w-6xl px-5">
         {urgent.length > 0 && (
           <div className="mb-5 rounded-2xl border border-ink/10 bg-sun/60 p-4 text-sm">
-            <p className="font-bold">⚠️ {urgent.map((i) => i.name).join(", ")} sudah dekat atau melewati batas simpan.</p>
-            <p className="mt-1 text-ink/70">Masak hari ini, pindahkan ke freezer, atau buang jika sudah kedaluwarsa.</p>
+            <p className="font-bold">{urgent.map((i) => i.name).join(", ")} sudah dekat atau melewati batas simpan.</p>
+            <p className="mt-1 text-ink/70">
+              Masak hari ini, pindahkan ke freezer, atau buang jika sudah kedaluwarsa.{" "}
+              <Link to="/alat?tab=rencana" className="font-semibold text-coral hover:underline">Masukkan ke rencana masak</Link>
+            </p>
           </div>
         )}
 

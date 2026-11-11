@@ -95,3 +95,92 @@ export const YIELD = {
   oxtail: 0.45,
   shank: 0.7,
 };
+
+// ---------- Marinade & salt ----------
+// Salt for a dry brine is ~1% of the meat weight. 1 sdt garam halus ≈ 6 g.
+export const SALT_G_PER_TSP = 6;
+
+export const CUT_TYPES = [
+  { id: "steak", label: "Steak tebal", hint: "Ribeye, sirloin, tenderloin 2–4 cm", salt: 1, brine: "40 menit – 24 jam", marinate: "1 – 12 jam", note: "Garami minimal 40 menit atau semalaman di kulkas tanpa ditutup. Jangan 2–40 menit: garam baru menarik cairan keluar dan permukaan jadi basah." },
+  { id: "iris", label: "Iris tipis", hint: "Yakiniku, bulgogi, tumis", salt: 0.8, brine: "Tidak perlu", marinate: "15 – 60 menit", note: "Irisan tipis cepat menyerap bumbu. Kalau marinasi memakai nanas, pepaya, atau jeruk, maksimal 1–2 jam supaya daging tidak lembek." },
+  { id: "dadu", label: "Dadu", hint: "Sate, semur, rendang", salt: 0.8, brine: "1 – 12 jam", marinate: "2 – 12 jam", note: "Tusuk sate atau potongan dadu cukup 2–4 jam; semalaman membuat bumbu lebih meresap." },
+  { id: "iga", label: "Iga & bertulang", hint: "Iga bakar, konro", salt: 1, brine: "4 – 24 jam", marinate: "4 – 24 jam", note: "Bumbu sulit menembus tulang dan lemak tebal. Ungkep dulu bersama bumbu, lalu bakar sambil diolesi." },
+  { id: "giling", label: "Daging giling", hint: "Bakso, patty", salt: 1.2, brine: "Campur langsung", marinate: "Diamkan 30 menit di kulkas", note: "Garam membantu protein mengikat sehingga bakso dan patty lebih kenyal. Masak sampai suhu inti minimal 71°C." },
+];
+
+// Base amounts per 500 g of meat; scaled to the actual weight.
+export const MARINADES = [
+  {
+    id: "garam",
+    label: "Garam & lada saja",
+    desc: "Dry brine klasik untuk steak dan daging panggang.",
+    items: [{ item: "Lada hitam tumbuk", amount: 1, unit: "sdt" }],
+    salty: false,
+  },
+  {
+    id: "bakar",
+    label: "Bakar manis",
+    desc: "Untuk sate, iga bakar, dan daging bakar kecap.",
+    items: [
+      { item: "Kecap manis", amount: 4, unit: "sdm" },
+      { item: "Bawang putih, haluskan", amount: 3, unit: "siung" },
+      { item: "Bawang merah, haluskan", amount: 4, unit: "butir" },
+      { item: "Ketumbar bubuk", amount: 1, unit: "sdt" },
+      { item: "Minyak goreng", amount: 1, unit: "sdm" },
+    ],
+    salty: true,
+  },
+  {
+    id: "yakiniku",
+    label: "Yakiniku / bulgogi",
+    desc: "Gurih manis ala Jepang–Korea untuk irisan tipis.",
+    items: [
+      { item: "Kecap asin", amount: 3, unit: "sdm" },
+      { item: "Gula pasir", amount: 1, unit: "sdm" },
+      { item: "Bawang putih, parut", amount: 2, unit: "siung" },
+      { item: "Jahe, parut", amount: 1, unit: "cm" },
+      { item: "Minyak wijen", amount: 1, unit: "sdm" },
+    ],
+    salty: true,
+  },
+  {
+    id: "steak",
+    label: "Steak herba",
+    desc: "Aroma bawang putih dan rosemary untuk steak.",
+    items: [
+      { item: "Lada hitam tumbuk", amount: 1, unit: "sdt" },
+      { item: "Bawang putih, geprek", amount: 3, unit: "siung" },
+      { item: "Minyak zaitun", amount: 2, unit: "sdm" },
+      { item: "Rosemary / thyme segar", amount: 2, unit: "tangkai" },
+    ],
+    salty: false,
+  },
+];
+
+// ---------- Kurban (Iduladha) ----------
+// Typical yields for local cattle (estimates; vary by breed and condition).
+export const KURBAN = {
+  carcass: 0.5, // karkas ≈ 50% bobot hidup
+  meatOfCarcass: 0.68, // daging tanpa tulang ≈ 68% karkas
+  boneOfCarcass: 0.2, // tulang ≈ 20% karkas
+  shares: 7, // satu sapi untuk tujuh pekurban
+};
+// Rumus Schoorl: perkiraan bobot hidup (kg) dari lingkar dada (cm).
+export const schoorl = (chestCm) => Math.round(((Number(chestCm) + 22) ** 2) / 100);
+
+// ---------- Unit conversion ----------
+export const WEIGHT_UNITS = [
+  { id: "g", label: "gram", g: 1 },
+  { id: "ons", label: "ons", g: 100 },
+  { id: "pon", label: "pon (½ kg)", g: 500 },
+  { id: "kg", label: "kilogram", g: 1000 },
+  { id: "lb", label: "pound (lb)", g: 453.6 },
+  { id: "oz", label: "ounce (oz)", g: 28.35 },
+];
+export const VOLUME_UNITS = [
+  { id: "ml", label: "mililiter", ml: 1 },
+  { id: "sdt", label: "sendok teh", ml: 5 },
+  { id: "sdm", label: "sendok makan", ml: 15 },
+  { id: "cup", label: "cup / gelas ukur", ml: 240 },
+  { id: "l", label: "liter", ml: 1000 },
+];

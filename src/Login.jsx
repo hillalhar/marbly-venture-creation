@@ -209,7 +209,7 @@ function RegisterForm({ onSubmit, onSwitch }) {
     <form onSubmit={submit} className="card space-y-4 p-6 sm:p-8">
       <div>
         <h1 className="font-display text-2xl font-bold">Buat akun marbly</h1>
-        <p className="mt-1 text-sm text-ink/60">Gratis. Deteksi dasar, toko, kulkas, dan alat langsung bisa dipakai.</p>
+        <p className="mt-1 text-sm text-ink/60">Gratis. Cek daging, belanja di toko, dan lacak pesanan langsung bisa dipakai.</p>
       </div>
       <div>
         <label htmlFor="r-name" className="label">Nama lengkap</label>

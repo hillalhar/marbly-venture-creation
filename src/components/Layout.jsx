@@ -8,6 +8,7 @@ import { useDismiss } from "../lib/hooks.js";
 import { DAY } from "../data/tools.js";
 import Logo, { LogoMark, Wordmark } from "./Logo.jsx";
 import Icon from "./icons.jsx";
+import { FloatingTimers } from "../lib/timers.jsx";
 
 export { PremiumLock } from "./ui.jsx";
 
@@ -16,22 +17,23 @@ const NAV = [
   { label: "Toko", to: "/toko" },
   { label: "Resep", to: "/resep" },
   { label: "Belajar", to: "/belajar", premium: true },
-  { label: "Kulkas", to: "/kulkas" },
-  { label: "Alat", to: "/alat" },
+  { label: "Kulkas", to: "/kulkas", premium: true },
+  { label: "Alat", to: "/alat", premium: true },
 ];
 
 const TABS = [
   { label: "Cek", to: "/", icon: "camera", end: true },
   { label: "Toko", to: "/toko", icon: "shop" },
   { label: "Resep", to: "/resep", icon: "book" },
-  { label: "Kulkas", to: "/kulkas", icon: "fridge" },
+  { label: "Kulkas", to: "/kulkas", icon: "fridge", premium: true },
   { label: "Akun", to: "/akun", icon: "user" },
 ];
 
 function useFridgeAlerts() {
   const { items } = useFridge();
+  const { isPremium } = useAuth();
   const now = Date.now();
-  return items.filter((i) => i.expiresAt - now <= DAY).length;
+  return isPremium ? items.filter((i) => i.expiresAt - now <= DAY).length : 0;
 }
 
 const initialsOf = (name = "?") =>
@@ -53,7 +55,8 @@ function AccountMenu() {
     { to: "/akun", label: "Profil & alamat", icon: "user" },
     { to: "/pesanan", label: "Pesanan saya", icon: "box" },
     { to: "/akun?tab=favorit", label: "Favorit", icon: "heart" },
-    { to: "/kulkas", label: "Kulkas saya", icon: "fridge" },
+    { to: "/kulkas", label: "Kulkas saya", icon: "fridge", premium: true },
+    { to: "/akun?tab=langganan", label: isPremium ? "Langganan Premium" : "Upgrade ke Premium", icon: "star" },
   ];
 
   return (
@@ -88,7 +91,8 @@ function AccountMenu() {
               className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-ink/80 hover:bg-ink/5 hover:text-ink"
             >
               <Icon name={l.icon} className="h-4 w-4 text-ink/50" />
-              {l.label}
+              <span className="flex-1">{l.label}</span>
+              {l.premium && !isPremium && <Icon name="lock" className="h-3.5 w-3.5 text-ink/35" />}
             </Link>
           ))}
           <div className="my-1 h-px bg-ink/5" />
@@ -113,8 +117,8 @@ const MOBILE_NAV = [
   { label: "Toko", to: "/toko", icon: "shop" },
   { label: "Resep", to: "/resep", icon: "book" },
   { label: "Belajar", to: "/belajar", icon: "learn", premium: true },
-  { label: "Kulkas", to: "/kulkas", icon: "fridge" },
-  { label: "Alat", to: "/alat", icon: "tool" },
+  { label: "Kulkas", to: "/kulkas", icon: "fridge", premium: true },
+  { label: "Alat", to: "/alat", icon: "tool", premium: true },
 ];
 const MOBILE_ACCOUNT = [
   { label: "Pesanan saya", to: "/pesanan", icon: "box" },
@@ -284,6 +288,7 @@ export function Header() {
 
 function BottomTabs() {
   const alerts = useFridgeAlerts();
+  const { isPremium } = useAuth();
   return (
     <nav aria-label="Navigasi bawah" className="fixed inset-x-0 bottom-0 z-40 border-t border-ink/5 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
       <div className="grid grid-cols-5">
@@ -296,7 +301,10 @@ function BottomTabs() {
               `relative flex flex-col items-center gap-1 pb-2 pt-2.5 text-[11px] font-semibold ${isActive ? "text-coral" : "text-ink/45"}`
             }
           >
-            <Icon name={t.icon} className="h-[22px] w-[22px]" />
+            <span className="relative">
+              <Icon name={t.icon} className="h-[22px] w-[22px]" />
+              {t.premium && !isPremium && <Icon name="lock" className="absolute -right-2 -top-1 h-3 w-3 rounded-full bg-white text-ink/40" strokeWidth={2.2} />}
+            </span>
             {t.label}
             {t.label === "Kulkas" && alerts > 0 && <span className="absolute right-[30%] top-2 h-2 w-2 rounded-full bg-coral ring-2 ring-white" />}
           </NavLink>
@@ -367,6 +375,7 @@ export default function Layout() {
         <Outlet />
       </main>
       <Footer />
+      <FloatingTimers />
       <BottomTabs />
     </div>
   );
