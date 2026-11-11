@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth.jsx";
 import { useCart } from "../lib/cart.jsx";
@@ -107,38 +108,111 @@ function AccountMenu() {
   );
 }
 
+const MOBILE_NAV = [
+  { label: "Cek Daging", to: "/", icon: "camera", end: true },
+  { label: "Toko", to: "/toko", icon: "shop" },
+  { label: "Resep", to: "/resep", icon: "book" },
+  { label: "Belajar", to: "/belajar", icon: "learn", premium: true },
+  { label: "Kulkas", to: "/kulkas", icon: "fridge" },
+  { label: "Alat", to: "/alat", icon: "tool" },
+];
+const MOBILE_ACCOUNT = [
+  { label: "Pesanan saya", to: "/pesanan", icon: "box" },
+  { label: "Keranjang", to: "/keranjang", icon: "cart" },
+  { label: "Favorit", to: "/akun?tab=favorit", icon: "heart" },
+  { label: "Profil & alamat", to: "/akun", icon: "user", end: true },
+];
+
+// Rendered into <body> via a portal: the header uses backdrop-blur, and a
+// `fixed` element inside an element with backdrop-filter is positioned
+// relative to that element, which clipped the drawer to the header height.
 function MobileMenu({ open, onClose }) {
-  const { isPremium } = useAuth();
+  const { user, isPremium, logout } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [open, onClose]);
+
   if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 bg-ink/30 md:hidden" onClick={onClose}>
-      <div className="absolute inset-y-0 left-0 w-72 animate-fadeIn bg-white p-5 shadow-soft" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between">
+
+  const item = ({ isActive }) =>
+    `flex items-center gap-3 rounded-xl px-3 py-3 text-[15px] font-semibold transition-colors ${
+      isActive ? "bg-coralsoft text-coral" : "text-ink/80 hover:bg-ink/5"
+    }`;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[80] md:hidden">
+      <button type="button" aria-label="Tutup menu" onClick={onClose} className="absolute inset-0 h-full w-full animate-fadeIn bg-ink/40 backdrop-blur-[2px]" />
+      <aside
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu"
+        className="absolute inset-y-0 left-0 flex w-[82%] max-w-xs animate-slideIn flex-col bg-white shadow-soft"
+      >
+        <div className="flex h-16 shrink-0 items-center justify-between border-b border-ink/5 px-5">
           <Logo />
-          <button onClick={onClose} className="btn-ghost px-2" aria-label="Tutup menu">
+          <button onClick={onClose} className="btn-ghost -mr-2 px-2" aria-label="Tutup menu">
             <Icon name="close" />
           </button>
         </div>
-        <nav className="mt-6 space-y-1">
-          {[...NAV, { label: "Pesanan", to: "/pesanan" }, { label: "Akun", to: "/akun" }].map((n) => (
-            <NavLink
-              key={n.to}
-              to={n.to}
-              end={n.end}
-              onClick={onClose}
-              className={({ isActive }) =>
-                `flex items-center justify-between rounded-xl px-3 py-2.5 text-[15px] font-semibold ${
-                  isActive ? "bg-coralsoft text-coral" : "text-ink/80 hover:bg-ink/5"
-                }`
-              }
-            >
-              {n.label}
-              {n.premium && !isPremium && <Icon name="lock" className="h-4 w-4 text-ink/40" />}
-            </NavLink>
-          ))}
-        </nav>
-      </div>
-    </div>
+
+        <div className="flex-1 overflow-y-auto px-3 py-4">
+          <div className="mb-4 flex items-center gap-3 rounded-2xl bg-creamsoft px-3 py-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-coral text-sm font-bold text-white">
+              {initialsOf(user?.name)}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold">{user?.name}</p>
+              <p className="truncate text-xs text-ink/50">{isPremium ? "Premium" : "Free"} · {user?.email}</p>
+            </div>
+          </div>
+
+          <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wider text-ink/40">Menu</p>
+          <nav className="space-y-0.5">
+            {MOBILE_NAV.map((n) => (
+              <NavLink key={n.to} to={n.to} end={n.end} onClick={onClose} className={item}>
+                <Icon name={n.icon} className="h-5 w-5 shrink-0 opacity-70" />
+                <span className="flex-1">{n.label}</span>
+                {n.premium && !isPremium && <Icon name="lock" className="h-4 w-4 text-ink/35" />}
+              </NavLink>
+            ))}
+          </nav>
+
+          <p className="mt-5 px-3 pb-1 text-xs font-semibold uppercase tracking-wider text-ink/40">Akun</p>
+          <nav className="space-y-0.5">
+            {MOBILE_ACCOUNT.map((n) => (
+              <NavLink key={n.to} to={n.to} end={n.end} onClick={onClose} className={item}>
+                <Icon name={n.icon} className="h-5 w-5 shrink-0 opacity-70" />
+                <span className="flex-1">{n.label}</span>
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+
+        <div className="shrink-0 border-t border-ink/5 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <button
+            onClick={() => {
+              onClose();
+              logout();
+              navigate("/");
+            }}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-[15px] font-semibold text-coral hover:bg-coralsoft"
+          >
+            <Icon name="logout" className="h-5 w-5" /> Keluar
+          </button>
+        </div>
+      </aside>
+    </div>,
+    document.body
   );
 }
 
@@ -165,11 +239,14 @@ export function Header() {
   const { count } = useCart();
   const alerts = useFridgeAlerts();
   const [menu, setMenu] = useState(false);
+  const closeMenu = useCallback(() => setMenu(false), []);
+  const { pathname } = useLocation();
+  useEffect(() => setMenu(false), [pathname]);
 
   return (
     <header className="sticky top-0 z-40 border-b border-ink/5 bg-white/85 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-2 px-5">
-        <button onClick={() => setMenu(true)} className="btn-ghost -ml-2 px-2 md:hidden" aria-label="Buka menu">
+        <button onClick={() => setMenu(true)} className="btn-ghost -ml-2 px-2 md:hidden" aria-label="Buka menu" aria-expanded={menu}>
           <Icon name="menu" />
         </button>
         <Logo />
@@ -200,7 +277,7 @@ export function Header() {
           <AccountMenu />
         </div>
       </div>
-      <MobileMenu open={menu} onClose={() => setMenu(false)} />
+      <MobileMenu open={menu} onClose={closeMenu} />
     </header>
   );
 }
