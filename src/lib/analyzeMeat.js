@@ -31,10 +31,13 @@ const API_BASE = "https://generativelanguage.googleapis.com/v1beta";
 // fastest first. Gemini 4 Carbon/Argon are paid-only; Gemini 4 Hydrogen is free
 // but took ~1 minute per request on the free tier, so it is not in the default
 // chain (add it with VITE_GEMINI_MODEL if you have a paid key).
+// Order matters for quota: the two flash-lite models have 15 RPM / 500 RPD each
+// on the free tier, gemini-3.8-flash only 5 RPM / 20 RPD, so it is kept as the
+// last real model to avoid burning its small daily quota on every RPM spike.
 export const DEFAULT_MODELS = [
-  "gemini-3.5-flash-lite", // stable, fastest
-  "gemini-3.8-flash", // stronger, a few seconds slower
-  "gemini-3.1-flash-lite", // stable, separate quota
+  "gemini-3.5-flash-lite", // stable, fastest · 15 RPM / 500 RPD
+  "gemini-3.1-flash-lite", // stable, separate quota · 15 RPM / 500 RPD
+  "gemini-3.8-flash", // stronger, slower, small quota · 5 RPM / 20 RPD
   "gemini-flash-lite-latest", // alias, hot-swapped by Google
   "gemini-flash-latest",
 ];
