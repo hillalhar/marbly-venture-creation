@@ -151,7 +151,12 @@ export default function Home() {
             {(result?.verdict || status === "error") && (
               <div className={`border-t border-ink/5 px-5 py-4 text-sm ${status === "error" ? "text-coral" : "text-ink/75"}`} role={status === "error" ? "alert" : undefined}>
                 {status === "error" ? errorMsg || "Gagal menganalisis foto. Coba foto lain." : result.verdict}
-                {result?.source === "gemini" && <span className="ml-2 text-xs text-ink/35">· Gemini{result.model ? ` ${result.model}` : ""}</span>}
+                {result?.source === "gemini" && (
+                  <span className="ml-2 text-xs text-ink/35">
+                    · {result.model || "Gemini"}
+                    {result.fallback ? " (model cadangan)" : ""}
+                  </span>
+                )}
               </div>
             )}
           </div>
